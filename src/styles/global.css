@@ -1,0 +1,33 @@
+:root {
+  --fg: #ffb627;
+  --fg-hi: #ffd27a;
+  --fg-dim: rgb(255 182 39 / 0.55);
+  --glow: drop-shadow(0 0 18px rgb(255 182 39 / 0.65));
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  background: #000;
+  color: var(--fg);
+  font-family: "Martian Mono", ui-monospace, monospace;
+}
+
+a, button {
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color .3s, filter .3s, transform .3s;
+}
+
+/* brilho no hover — use em qualquer elemento interativo */
+a:hover, button:hover, .glow:hover { color: var(--fg-hi); filter: var(--glow); }
+
+/* letras ainda embaralhadas (lib/scramble.ts) */
+.scr { color: var(--fg-dim); }

@@ -1,0 +1,56 @@
+---
+// Vídeo de fundo centralizado, bordas sumindo no preto, com parallax do mouse.
+---
+
+<div class="bg">
+  <video autoplay loop muted playsinline poster="/poster.jpg">
+    <source src="/bg.webm" type="video/webm" />
+    <source src="/bg.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<script>
+  const video = document.querySelector<HTMLVideoElement>('.bg video')!
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    addEventListener('mousemove', (e) => {
+      video.style.setProperty('--x', `${(e.clientX / innerWidth - 0.5) * -24}px`)
+      video.style.setProperty('--y', `${(e.clientY / innerHeight - 0.5) * -24}px`)
+    })
+  }
+</script>
+
+<style>
+  .bg { position: fixed; inset: 0; z-index: -1; }
+
+  video {
+    position: absolute; left: 50%; top: 50%;
+    width: 88vw; height: auto;
+    transform: translate(calc(-50% + var(--x, 0px)), calc(-50% + var(--y, 0px)));
+    transition: transform .8s ease-out;
+    mask-image: radial-gradient(ellipse 50% 50%, #000 72%, transparent);
+  }
+
+  /* escurece embaixo pra o texto ler melhor */
+  .bg::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(transparent 75%, rgb(0 0 0 / .6));
+  }
+
+  /* tela em pé: vídeo maior, só topo/base sumindo + sombra atrás dos ícones (direita) */
+  @media (orientation: portrait) {
+    video {
+      top: 45%;
+      width: 200vw;
+      mask-image: linear-gradient(transparent, #000 25%, #000 75%, transparent);
+    }
+    .bg::after {
+      background:
+        linear-gradient(to left, rgb(0 0 0 / .8), transparent 30%),
+        linear-gradient(transparent 50%, rgb(0 0 0 / .9) 80%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    video { transition: none; }
+  }
+</style>

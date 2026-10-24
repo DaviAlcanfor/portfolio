@@ -1,0 +1,30 @@
+---
+import { SOCIALS } from '../data/site'
+import Icon from './Icon.astro'
+---
+
+<nav class="social" aria-label="Social">
+  {
+    SOCIALS.map((s) => {
+      const external = s.href.startsWith('http')
+      return (
+        <a href={s.href} aria-label={s.label} target={external ? '_blank' : undefined} rel={external ? 'noopener' : undefined}>
+          <Icon name={s.icon} />
+        </a>
+      )
+    })
+  }
+</nav>
+
+<style>
+  .social { position: fixed; left: 32px; top: 88px; display: flex; gap: 20px; }
+  a:hover { transform: scale(1.25); }
+
+  @media (max-width: 768px) {
+    .social {
+      left: auto; right: 16px; top: 50%;
+      transform: translateY(-50%);
+      flex-direction: column; gap: 16px;
+    }
+  }
+</style>

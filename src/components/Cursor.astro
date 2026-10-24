@@ -1,0 +1,77 @@
+---
+// Cursor customizado: ponto segue o mouse na hora, anel segue com atraso.
+// Só ativa com mouse (pointer: fine); em touch nada muda.
+---
+
+<div class="cursor-ring" aria-hidden="true"></div>
+<div class="cursor-dot" aria-hidden="true"></div>
+
+<script>
+  const fine = matchMedia('(hover: hover) and (pointer: fine)').matches
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  if (fine) {
+    const dot = document.querySelector<HTMLElement>('.cursor-dot')!
+    const ring = document.querySelector<HTMLElement>('.cursor-ring')!
+    const root = document.documentElement
+    const mouse = { x: innerWidth / 2, y: innerHeight / 2 }
+    const pos = { ...mouse }
+
+    root.classList.add('has-cursor')
+
+    addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX
+      mouse.y = e.clientY
+      dot.style.transform = `translate(${mouse.x}px, ${mouse.y}px)`
+      root.classList.remove('cursor-out')
+      // cresce em cima de qualquer coisa clicável
+      ring.classList.toggle('hover', !!(e.target as Element).closest('a, button'))
+    })
+    document.addEventListener('mouseleave', () => root.classList.add('cursor-out'))
+    addEventListener('mousedown', () => ring.classList.add('down'))
+    addEventListener('mouseup', () => ring.classList.remove('down'))
+
+    // anel persegue o mouse (lerp); sem atraso se reduced motion
+    const follow = () => {
+      const k = reduced ? 1 : 0.18
+      pos.x += (mouse.x - pos.x) * k
+      pos.y += (mouse.y - pos.y) * k
+      ring.style.transform = `translate(${pos.x}px, ${pos.y}px)`
+      requestAnimationFrame(follow)
+    }
+    follow()
+  }
+</script>
+
+<style>
+  .cursor-dot, .cursor-ring {
+    display: none;
+    position: fixed; left: 0; top: 0; z-index: 1000;
+    pointer-events: none;
+  }
+
+  :global(.has-cursor), :global(.has-cursor) :global(a), :global(.has-cursor) :global(button) { cursor: none; }
+  :global(.has-cursor) .cursor-dot, :global(.has-cursor) .cursor-ring { display: block; }
+  :global(.cursor-out) .cursor-dot, :global(.cursor-out) .cursor-ring { opacity: 0; }
+
+  /* ::before desenha centralizado no ponto, deixando o transform livre pra posição */
+  .cursor-dot::before, .cursor-ring::before {
+    content: ""; position: absolute; border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width .25s, height .25s, background .25s, border-color .25s, box-shadow .25s;
+  }
+
+  .cursor-dot::before { width: 6px; height: 6px; background: var(--fg); }
+
+  .cursor-ring::before {
+    width: 34px; height: 34px;
+    border: 1px solid var(--fg-dim);
+  }
+  .cursor-ring.hover::before {
+    width: 56px; height: 56px;
+    border-color: var(--fg);
+    background: rgb(255 182 39 / .08);
+    box-shadow: 0 0 24px rgb(255 182 39 / .35);
+  }
+  .cursor-ring.down::before { width: 22px; height: 22px; }
+</style>

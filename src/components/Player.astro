@@ -1,0 +1,125 @@
+---
+// Player de música via YouTube IFrame API — a API só carrega no primeiro clique.
+import Icon from './Icon.astro'
+---
+
+<div class="player">
+  <span class="now" aria-live="polite"></span>
+  <button class="listen" data-action="toggle">
+    click to listen <span class="bars"><span></span><span></span><span></span><span></span></span>
+  </button>
+  <button data-action="prev" aria-label="Previous track"><Icon name="prev" size={18} /></button>
+  <button data-action="toggle" aria-label="Play music"><Icon name="volume" /></button>
+  <button data-action="next" aria-label="Next track"><Icon name="next" size={18} /></button>
+  <button data-action="shuffle" aria-label="Random track"><Icon name="shuffle" size={18} /></button>
+  <small class="note">a very eclectic playlist :)</small>
+  <div class="yt"><div id="yt"></div></div>
+</div>
+
+<script>
+  import { TRACKS } from '../data/site'
+  import { scramble } from '../lib/scramble'
+
+  const now = document.querySelector<HTMLElement>('.player .now')!
+  let player: YT.Player | undefined
+  let starting = false
+  let current = 0
+
+  const setPlaying = (on: boolean) => document.body.classList.toggle('playing', on)
+
+  function loadApi(): Promise<void> {
+    return new Promise((resolve) => {
+      window.onYouTubeIframeAPIReady = () => resolve()
+      const s = document.createElement('script')
+      s.src = 'https://www.youtube.com/iframe_api'
+      document.head.append(s)
+    })
+  }
+
+  async function play(index: number) {
+    current = (index + TRACKS.length) % TRACKS.length
+    const track = TRACKS[current]
+    scramble(now, `♪ ${track.title} — ${track.artist}`, 600)
+
+    if (player) return player.loadVideoById(track.id)
+    if (starting) return // API ainda carregando; o onReady toca a faixa atual
+    starting = true
+    await loadApi()
+    player = new YT.Player('yt', {
+      videoId: track.id,
+      playerVars: { autoplay: 1, playsinline: 1 },
+      events: {
+        onReady: (e) => e.target.loadVideoById(TRACKS[current].id),
+        onStateChange: (e) => {
+          // ignora buffering pra não piscar o "click to listen"
+          if (e.data === YT.PlayerState.PLAYING) setPlaying(true)
+          if (e.data === YT.PlayerState.PAUSED) setPlaying(false)
+          if (e.data === YT.PlayerState.ENDED) play(current + 1)
+        },
+      },
+    })
+  }
+
+  function toggle() {
+    if (!player) return play(current)
+    if (document.body.classList.contains('playing')) player.pauseVideo()
+    else player.playVideo()
+  }
+
+  const actions: Record<string, () => unknown> = {
+    toggle,
+    prev: () => play(current - 1),
+    next: () => play(current + 1),
+    // aleatória, mas nunca repete a atual
+    shuffle: () => play(current + 1 + ((Math.random() * (TRACKS.length - 1)) | 0)),
+  }
+
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('.player [data-action]')) {
+    btn.addEventListener('click', () => actions[btn.dataset.action!]())
+  }
+</script>
+
+<style>
+  .player {
+    position: fixed; right: 32px; top: 88px;
+    display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center;
+    gap: 12px; font-size: 13px;
+  }
+
+  button:not(.listen):hover { transform: scale(1.25); }
+
+  .now { max-width: 22rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .now:empty { display: none; }
+  .note { flex-basis: 100%; text-align: right; font-size: 11px; color: var(--fg-dim); }
+
+  /* ícone de volume: mudo x tocando */
+  .player :global(.on),
+  :global(.playing) .player :global(.off) { display: none; }
+  :global(.playing) .player :global(.on) { display: inline; }
+
+  .listen { color: var(--fg-dim); animation: pulse 2s ease-in-out infinite; }
+  :global(.playing) .listen { display: none; }
+  @keyframes pulse { 50% { opacity: .45; } }
+
+  .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 10px; margin-left: 4px; }
+  .bars span {
+    width: 2px; height: 100%; background: currentColor;
+    transform-origin: bottom; animation: bar 1s ease-in-out infinite;
+  }
+  .bars span:nth-child(2) { animation-delay: -.3s; }
+  .bars span:nth-child(3) { animation-delay: -.6s; }
+  .bars span:nth-child(4) { animation-delay: -.15s; }
+  @keyframes bar { 50% { transform: scaleY(.3); } }
+
+  .yt { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+  @media (max-width: 768px) {
+    .player { right: 0; left: 0; top: 56px; padding: 0 16px; justify-content: center; }
+    .now { order: 1; flex-basis: 100%; max-width: none; text-align: center; }
+    .note { order: 2; text-align: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .listen, .bars span { animation: none; }
+  }
+</style>

@@ -1,0 +1,42 @@
+---
+import { SITE } from '../data/site'
+---
+
+<main class="intro">
+  <h1 class="role glow">{SITE.role}</h1>
+  <p class="bio glow">{SITE.bio}</p>
+</main>
+
+<script>
+  import { scramble } from '../lib/scramble'
+
+  const role = document.querySelector<HTMLElement>('.intro .role')!
+  const bio = document.querySelector<HTMLElement>('.intro .bio')!
+  const roleText = role.textContent ?? ''
+
+  // cargo: glitch periódico; bio: decodifica ao carregar
+  scramble(role, roleText)
+  setInterval(() => scramble(role, roleText), 4000)
+  scramble(bio, bio.textContent ?? '', 1800)
+</script>
+
+<style>
+  .intro {
+    position: fixed; inset: auto 0 0;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 0 64px 48px; gap: 32px;
+  }
+
+  .role { font-size: 30px; font-weight: 400; letter-spacing: -.02em; cursor: default; min-height: 1.3em; }
+
+  .bio {
+    text-align: right; font-size: 18px; line-height: 1.5;
+    color: var(--fg-dim); white-space: pre-line; cursor: default;
+  }
+
+  @media (max-width: 768px) {
+    .intro { flex-direction: column; align-items: flex-start; padding: 0 16px 32px; gap: 16px; }
+    .role { font-size: 20px; }
+    .bio { text-align: left; font-size: 13px; }
+  }
+</style>

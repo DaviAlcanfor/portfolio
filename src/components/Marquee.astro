@@ -1,0 +1,57 @@
+---
+import { MARQUEE } from '../data/site'
+
+// renderiza 2x pra o loop do translateX(-50%) ficar contínuo
+const items = [...MARQUEE, ...MARQUEE]
+---
+
+<header class="marquee" aria-label="About">
+  <div class="track">
+    {
+      items.map((item, i) => (
+        <>
+          {item.href ? (
+            <a href={item.href} target="_blank" rel="noopener" aria-hidden={i >= MARQUEE.length ? 'true' : undefined} tabindex={i >= MARQUEE.length ? -1 : undefined}>
+              {item.text}
+            </a>
+          ) : (
+            <span aria-hidden={i >= MARQUEE.length ? 'true' : undefined}>{item.text}</span>
+          )}
+          <i aria-hidden="true">◆</i>
+        </>
+      ))
+    }
+  </div>
+</header>
+
+<script>
+  import { scramble } from '../lib/scramble'
+
+  // glitch no hover dos links
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('.marquee a')) {
+    const text = a.textContent ?? ''
+    a.addEventListener('mouseenter', () => scramble(a, text, 500))
+  }
+</script>
+
+<style>
+  .marquee { position: fixed; inset: 24px 0 auto; overflow: hidden; font-size: 14px; }
+
+  .track {
+    display: flex; gap: 32px; width: max-content; white-space: nowrap;
+    animation: marquee 40s linear infinite;
+  }
+  .marquee:hover .track { animation-play-state: paused; }
+
+  i { font-style: normal; color: var(--fg-dim); }
+
+  @keyframes marquee { to { transform: translateX(-50%); } }
+
+  @media (max-width: 768px) {
+    .marquee { font-size: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .track { animation: none; }
+  }
+</style>
