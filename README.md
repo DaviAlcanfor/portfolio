@@ -6,6 +6,8 @@
 
 AI engineer based in São Paulo
 
+**[alcanfor.vercel.app](https://alcanfor.vercel.app)**
+
 [LinkedIn](https://www.linkedin.com/in/davi-alcanfor/) · [Medium](https://medium.com/@alcanfordavi) · [Email](mailto:alcanfordavi@gmail.com)
 
 </div>
