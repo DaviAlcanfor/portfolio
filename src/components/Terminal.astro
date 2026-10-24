@@ -1,30 +1,45 @@
 ---
 // Janela de terminal com os projetos. Abre pelo botão "ls projects" ou pela tecla "/".
 import { PROJECTS } from '../data/site'
+
+const short = (url: string) => url.replace(/^https?:\/\//, '')
 ---
 
 <dialog class="terminal" aria-label="Projects">
   <header>
-    <span>davi@portfolio: ~/projects</span>
-    <button class="close" aria-label="Close">[x]</button>
+    <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="title">davi@portfolio: ~</span>
+    <button class="close" aria-label="Close">esc</button>
   </header>
 
   <div class="body" tabindex="-1" autofocus>
-    <p class="cmd"><span class="prompt">$</span> <span class="typed">ls -l projects</span></p>
-    <ul>
-      {
-        PROJECTS.map((p, i) => (
-          <li style={`--i: ${i}`}>
-            <div class="title">
-              <a href={p.href} target="_blank" rel="noopener" data-glitch>{p.name}</a>
-              {p.demo && <a class="demo" href={p.demo} target="_blank" rel="noopener" data-glitch>live demo ↗</a>}
-            </div>
-            <p class="desc">{p.desc}</p>
-            <p class="tags">{p.tags.map((t) => `#${t}`).join('  ')}</p>
-          </li>
-        ))
-      }
-    </ul>
+    <p class="line"><span class="prompt">davi@portfolio:~$</span> <span class="typed">ls projects/</span></p>
+    <p class="ls">{PROJECTS.map((p) => <span>{p.name}/</span>)}</p>
+
+    <p class="line"><span class="prompt">davi@portfolio:~$</span> cat projects/*/README</p>
+
+    {
+      PROJECTS.map((p, i) => (
+        <section style={`--i: ${i}`}>
+          <h2>── {p.name} </h2>
+          <p class="desc">{p.desc}</p>
+          <dl>
+            <dt>stack</dt>
+            <dd>{p.tags.join(' · ')}</dd>
+            <dt>repo</dt>
+            <dd><a href={p.href} target="_blank" rel="noopener">{short(p.href)}</a></dd>
+            {p.demo && (
+              <>
+                <dt>demo</dt>
+                <dd><a href={p.demo} target="_blank" rel="noopener">{short(p.demo)}</a></dd>
+              </>
+            )}
+          </dl>
+        </section>
+      ))
+    }
+
+    <p class="line"><span class="prompt">davi@portfolio:~$</span> <span class="end-caret"></span></p>
   </div>
 </dialog>
 
@@ -38,7 +53,7 @@ import { PROJECTS } from '../data/site'
   function open() {
     if (dialog.open) return
     dialog.showModal()
-    scramble(typed, command, 500)
+    scramble(typed, command, 400)
   }
 
   document.querySelectorAll('[data-open-projects]').forEach((btn) => btn.addEventListener('click', open))
@@ -61,66 +76,88 @@ import { PROJECTS } from '../data/site'
 <style>
   .terminal {
     margin: auto; /* o reset global zera a centralização padrão do dialog */
-    width: min(760px, calc(100vw - 32px));
-    max-height: min(80vh, 720px);
+    width: min(780px, calc(100vw - 32px));
+    max-height: min(82vh, 760px);
     padding: 0;
-    color: var(--fg);
-    background: rgb(0 0 0 / .92);
-    border: 1px solid var(--fg-dim);
-    box-shadow: 0 0 40px rgb(255 182 39 / .15);
+    color: #d8d2c4;
+    background: #0b0b0b;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
     font-family: inherit;
     overflow: hidden;
   }
   /* cabeçalho fixo em cima, só o conteúdo rola */
-  .terminal[open] { display: flex; flex-direction: column; }
-  .terminal::backdrop { background: rgb(0 0 0 / .6); backdrop-filter: blur(3px); }
-  .terminal[open] { animation: boot .25s ease-out; }
+  .terminal[open] { display: flex; flex-direction: column; animation: boot .2s ease-out; }
+  .terminal::backdrop { background: rgb(0 0 0 / .7); }
 
   /* cursor customizado não aparece na camada do modal: usa um bloco âmbar nativo no lugar */
   .terminal, .terminal :global(*) {
     cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='18'%3E%3Crect width='10' height='18' fill='%23ffb627'/%3E%3C/svg%3E") 5 9, auto !important;
   }
 
+  /* sem glow aqui dentro: hover vira seleção invertida, como num terminal */
+  .terminal :global(a:hover), .terminal :global(button:hover) { filter: none; }
+
   header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 16px;
-    font-size: 12px; color: var(--fg-dim);
-    background: #000;
-    border-bottom: 1px solid rgb(255 182 39 / .25);
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+    padding: 10px 14px;
+    font-size: 12px; color: #777;
+    background: #151515;
+    border-bottom: 1px solid #222;
   }
+  .dots { display: flex; gap: 7px; }
+  .dots i { width: 11px; height: 11px; border-radius: 50%; background: #2c2c2c; }
+  .close { justify-self: end; font-size: 11px; color: #777; padding: 2px 6px; }
+  .close:hover { color: #000; background: var(--fg); }
 
   .body {
-    padding: 20px 24px 28px; font-size: 14px; outline: none;
+    padding: 22px 28px 28px;
+    font-size: 13px; line-height: 1.75;
+    outline: none;
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: var(--fg-dim) transparent;
+    scrollbar-color: #333 transparent;
   }
 
-  .cmd { margin-bottom: 20px; }
-  .prompt { color: var(--fg-dim); }
-  .typed::after { content: "▮"; margin-left: 4px; animation: blink 1s step-end infinite; }
+  .line { color: #d8d2c4; }
+  .prompt { color: var(--fg); margin-right: 4px; }
 
-  ul { list-style: none; padding: 0; display: grid; gap: 22px; }
+  .ls { display: flex; flex-wrap: wrap; gap: 4px 28px; margin: 4px 0 26px; color: var(--fg); }
 
-  li { animation: line .35s ease-out both; animation-delay: calc(.3s + var(--i) * .08s); }
+  section {
+    margin: 26px 0 34px;
+    animation: line .3s ease-out both;
+    animation-delay: calc(.15s + var(--i) * .07s);
+  }
 
-  .title { display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
-  .title a:first-child { font-size: 16px; }
-  .title a:first-child::before { content: "./"; color: var(--fg-dim); }
-  .demo { font-size: 12px; color: var(--fg-dim); }
+  h2 {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 600; color: var(--fg);
+  }
+  /* completa a linha do título: ── nome ──────── */
+  h2::after { content: ""; flex: 1; border-top: 1px solid #2a2a2a; }
 
-  .desc { margin-top: 6px; line-height: 1.6; color: rgb(255 255 255 / .75); }
-  .tags { margin-top: 6px; font-size: 12px; color: var(--fg-dim); }
+  .desc { margin: 10px 0 12px; max-width: 62ch; }
 
-  @keyframes boot { from { opacity: 0; transform: scale(.98); } }
-  @keyframes line { from { opacity: 0; transform: translateY(6px); } }
+  dl { display: grid; grid-template-columns: 7ch 1fr; row-gap: 2px; }
+  dt { color: #666; }
+  dd { margin: 0; color: #a39d90; overflow-wrap: anywhere; }
+
+  a { color: var(--fg); }
+  a:hover { color: #000; background: var(--fg); }
+
+  .end-caret { display: inline-block; width: 8px; height: 15px; vertical-align: -2px; background: var(--fg); animation: blink 1s step-end infinite; }
+
+  @keyframes boot { from { opacity: 0; transform: translateY(6px); } }
+  @keyframes line { from { opacity: 0; } }
   @keyframes blink { 50% { opacity: 0; } }
 
   @media (max-width: 768px) {
-    .body { padding: 16px; font-size: 13px; }
+    .body { padding: 16px 18px 22px; font-size: 12px; }
+    .ls { gap: 2px 18px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .terminal[open], li, .typed::after { animation: none; }
+    .terminal[open], section, .end-caret { animation: none; }
   }
 </style>
