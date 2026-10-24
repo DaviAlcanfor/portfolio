@@ -29,6 +29,9 @@ a, button {
 /* brilho no hover — use em qualquer elemento interativo */
 a:hover, button:hover, .glow:hover { color: var(--fg-hi); filter: var(--glow); }
 
+/* foco visível pra quem navega com teclado */
+:focus-visible { outline: 1px solid var(--fg); outline-offset: 4px; }
+
 /* texto selecionado na paleta do projeto */
 ::selection { background: var(--fg); color: #000; text-shadow: none; }
 

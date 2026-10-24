@@ -20,7 +20,7 @@
     let last = { x: 0, y: 0 }
     let idleTimer = 0
 
-    root.classList.add('has-cursor')
+    root.classList.add('has-cursor', 'cursor-out') // escondido até o primeiro movimento
 
     const randomGlyph = () => GLYPHS[(Math.random() * GLYPHS.length) | 0]
 
@@ -77,6 +77,8 @@
   :global(.has-cursor), :global(.has-cursor) :global(a), :global(.has-cursor) :global(button) { cursor: none; }
   :global(.has-cursor) .caret { display: block; }
   :global(.cursor-out) .caret { opacity: 0; }
+  /* o terminal (modal) fica numa camada acima de tudo e usa cursor próprio */
+  :global(html:has(dialog[open])) .caret { display: none; }
 
   /* ::before desenha o bloco; o transform do .caret fica livre pra posição */
   .caret::before {

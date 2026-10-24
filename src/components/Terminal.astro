@@ -1,0 +1,126 @@
+---
+// Janela de terminal com os projetos. Abre pelo botão "ls projects" ou pela tecla "/".
+import { PROJECTS } from '../data/site'
+---
+
+<dialog class="terminal" aria-label="Projects">
+  <header>
+    <span>davi@portfolio: ~/projects</span>
+    <button class="close" aria-label="Close">[x]</button>
+  </header>
+
+  <div class="body" tabindex="-1" autofocus>
+    <p class="cmd"><span class="prompt">$</span> <span class="typed">ls -l projects</span></p>
+    <ul>
+      {
+        PROJECTS.map((p, i) => (
+          <li style={`--i: ${i}`}>
+            <div class="title">
+              <a href={p.href} target="_blank" rel="noopener" data-glitch>{p.name}</a>
+              {p.demo && <a class="demo" href={p.demo} target="_blank" rel="noopener" data-glitch>live demo ↗</a>}
+            </div>
+            <p class="desc">{p.desc}</p>
+            <p class="tags">{p.tags.map((t) => `#${t}`).join('  ')}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</dialog>
+
+<script>
+  import { scramble } from '../lib/scramble'
+
+  const dialog = document.querySelector<HTMLDialogElement>('dialog.terminal')!
+  const typed = dialog.querySelector<HTMLElement>('.typed')!
+  const command = typed.textContent ?? ''
+
+  function open() {
+    if (dialog.open) return
+    dialog.showModal()
+    scramble(typed, command, 500)
+  }
+
+  document.querySelectorAll('[data-open-projects]').forEach((btn) => btn.addEventListener('click', open))
+  dialog.querySelector('.close')!.addEventListener('click', () => dialog.close())
+
+  // clique fora da janela (no backdrop) fecha
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) dialog.close()
+  })
+
+  // atalho "/" abre de qualquer lugar
+  addEventListener('keydown', (e) => {
+    if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault()
+      open()
+    }
+  })
+</script>
+
+<style>
+  .terminal {
+    margin: auto; /* o reset global zera a centralização padrão do dialog */
+    width: min(760px, calc(100vw - 32px));
+    max-height: min(80vh, 720px);
+    padding: 0;
+    color: var(--fg);
+    background: rgb(0 0 0 / .92);
+    border: 1px solid var(--fg-dim);
+    box-shadow: 0 0 40px rgb(255 182 39 / .15);
+    font-family: inherit;
+    overflow: hidden;
+  }
+  /* cabeçalho fixo em cima, só o conteúdo rola */
+  .terminal[open] { display: flex; flex-direction: column; }
+  .terminal::backdrop { background: rgb(0 0 0 / .6); backdrop-filter: blur(3px); }
+  .terminal[open] { animation: boot .25s ease-out; }
+
+  /* cursor customizado não aparece na camada do modal: usa um bloco âmbar nativo no lugar */
+  .terminal, .terminal :global(*) {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='18'%3E%3Crect width='10' height='18' fill='%23ffb627'/%3E%3C/svg%3E") 5 9, auto !important;
+  }
+
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px;
+    font-size: 12px; color: var(--fg-dim);
+    background: #000;
+    border-bottom: 1px solid rgb(255 182 39 / .25);
+  }
+
+  .body {
+    padding: 20px 24px 28px; font-size: 14px; outline: none;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--fg-dim) transparent;
+  }
+
+  .cmd { margin-bottom: 20px; }
+  .prompt { color: var(--fg-dim); }
+  .typed::after { content: "▮"; margin-left: 4px; animation: blink 1s step-end infinite; }
+
+  ul { list-style: none; padding: 0; display: grid; gap: 22px; }
+
+  li { animation: line .35s ease-out both; animation-delay: calc(.3s + var(--i) * .08s); }
+
+  .title { display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+  .title a:first-child { font-size: 16px; }
+  .title a:first-child::before { content: "./"; color: var(--fg-dim); }
+  .demo { font-size: 12px; color: var(--fg-dim); }
+
+  .desc { margin-top: 6px; line-height: 1.6; color: rgb(255 255 255 / .75); }
+  .tags { margin-top: 6px; font-size: 12px; color: var(--fg-dim); }
+
+  @keyframes boot { from { opacity: 0; transform: scale(.98); } }
+  @keyframes line { from { opacity: 0; transform: translateY(6px); } }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  @media (max-width: 768px) {
+    .body { padding: 16px; font-size: 13px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .terminal[open], li, .typed::after { animation: none; }
+  }
+</style>
