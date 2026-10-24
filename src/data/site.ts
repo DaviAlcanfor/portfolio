@@ -18,8 +18,8 @@ export const MARQUEE: MarqueeItem[] = [
   { text: "Hi, I'm Davi Alcanfor, a Brazilian AI engineer based in São Paulo." },
   { text: 'building AI @ PicPay', href: 'https://picpay.com' },
   { text: 'studying at Instituto JEF' },
-  { text: 'python · rust · go · java' },
-  { text: 'I speak Portuguese, English, French and Spanish' },
+  { text: 'python' },
+  { text: 'portuguese, spanish and french' },
   { text: 'I write on Medium', href: 'https://medium.com/@alcanfordavi' },
 ]
 
