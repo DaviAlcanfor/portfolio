@@ -1,6 +1,6 @@
 // Efeito glitch: cada letra embaralha e "trava" no caractere certo, da esquerda pra direita.
 
-const GLYPHS = '!#$%*+=?/\\|_-01ABCDEFGHIJKLMNOPQRSTUVWXYZ@'
+export const GLYPHS ='!#$%*+=?/\\|_-01ABCDEFGHIJKLMNOPQRSTUVWXYZ@'
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
 const running = new WeakMap<HTMLElement, number>() // cancela animação anterior no mesmo elemento
 

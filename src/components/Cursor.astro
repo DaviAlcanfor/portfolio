@@ -1,77 +1,113 @@
 ---
-// Cursor customizado: ponto segue o mouse na hora, anel segue com atraso.
+// Cursor de terminal: bloco que inverte as cores do que está embaixo (como num terminal),
+// deixa um rastro de caracteres caindo (igual à chuva do vídeo) e solta uma explosão no clique.
 // Só ativa com mouse (pointer: fine); em touch nada muda.
 ---
 
-<div class="cursor-ring" aria-hidden="true"></div>
-<div class="cursor-dot" aria-hidden="true"></div>
+<div class="caret" aria-hidden="true"></div>
 
 <script>
+  import { GLYPHS } from '../lib/scramble'
+
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
 
   if (fine) {
-    const dot = document.querySelector<HTMLElement>('.cursor-dot')!
-    const ring = document.querySelector<HTMLElement>('.cursor-ring')!
+    const caret = document.querySelector<HTMLElement>('.caret')!
     const root = document.documentElement
-    const mouse = { x: innerWidth / 2, y: innerHeight / 2 }
-    const pos = { ...mouse }
+    const STEP = 26 // px de movimento entre um caractere do rastro e outro
+    const MAX_GLYPHS = 40
+    let last = { x: 0, y: 0 }
+    let idleTimer = 0
 
     root.classList.add('has-cursor')
 
-    addEventListener('mousemove', (e) => {
-      mouse.x = e.clientX
-      mouse.y = e.clientY
-      dot.style.transform = `translate(${mouse.x}px, ${mouse.y}px)`
-      root.classList.remove('cursor-out')
-      // cresce em cima de qualquer coisa clicável
-      ring.classList.toggle('hover', !!(e.target as Element).closest('a, button'))
-    })
-    document.addEventListener('mouseleave', () => root.classList.add('cursor-out'))
-    addEventListener('mousedown', () => ring.classList.add('down'))
-    addEventListener('mouseup', () => ring.classList.remove('down'))
+    const randomGlyph = () => GLYPHS[(Math.random() * GLYPHS.length) | 0]
 
-    // anel persegue o mouse (lerp); sem atraso se reduced motion
-    const follow = () => {
-      const k = reduced ? 1 : 0.18
-      pos.x += (mouse.x - pos.x) * k
-      pos.y += (mouse.y - pos.y) * k
-      ring.style.transform = `translate(${pos.x}px, ${pos.y}px)`
-      requestAnimationFrame(follow)
+    function spawn(x: number, y: number, cls: string, dx = 0, dy = 0) {
+      if (reduced || document.querySelectorAll('.glyph').length >= MAX_GLYPHS) return
+      const g = document.createElement('span')
+      g.className = `glyph ${cls}`
+      g.textContent = randomGlyph()
+      g.style.left = `${x}px`
+      g.style.top = `${y}px`
+      g.style.setProperty('--dx', `${dx}px`)
+      g.style.setProperty('--dy', `${dy}px`)
+      g.addEventListener('animationend', () => g.remove())
+      document.body.append(g)
     }
-    follow()
+
+    addEventListener('mousemove', (e) => {
+      const { clientX: x, clientY: y } = e
+      caret.style.transform = `translate(${x}px, ${y}px)`
+      root.classList.remove('cursor-out')
+
+      // pisca só quando o mouse para
+      caret.classList.remove('idle')
+      clearTimeout(idleTimer)
+      idleTimer = window.setTimeout(() => caret.classList.add('idle'), 600)
+
+      caret.classList.toggle('hover', !!(e.target as Element).closest('a, button'))
+
+      if (Math.hypot(x - last.x, y - last.y) > STEP) {
+        spawn(x, y, 'trail')
+        last = { x, y }
+      }
+    })
+
+    addEventListener('mousedown', (e) => {
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2
+        spawn(e.clientX, e.clientY, 'burst', Math.cos(angle) * 40, Math.sin(angle) * 40)
+      }
+    })
+
+    document.addEventListener('mouseleave', () => root.classList.add('cursor-out'))
   }
 </script>
 
 <style>
-  .cursor-dot, .cursor-ring {
+  .caret {
     display: none;
     position: fixed; left: 0; top: 0; z-index: 1000;
     pointer-events: none;
+    mix-blend-mode: difference; /* inverte o que estiver embaixo, como cursor de terminal */
   }
 
   :global(.has-cursor), :global(.has-cursor) :global(a), :global(.has-cursor) :global(button) { cursor: none; }
-  :global(.has-cursor) .cursor-dot, :global(.has-cursor) .cursor-ring { display: block; }
-  :global(.cursor-out) .cursor-dot, :global(.cursor-out) .cursor-ring { opacity: 0; }
+  :global(.has-cursor) .caret { display: block; }
+  :global(.cursor-out) .caret { opacity: 0; }
 
-  /* ::before desenha centralizado no ponto, deixando o transform livre pra posição */
-  .cursor-dot::before, .cursor-ring::before {
-    content: ""; position: absolute; border-radius: 50%;
+  /* ::before desenha o bloco; o transform do .caret fica livre pra posição */
+  .caret::before {
+    content: ""; position: absolute;
+    width: 10px; height: 18px; left: -1px; top: -9px;
+    background: #fff;
+    transition: width .15s, height .15s, top .15s;
+  }
+  .caret.idle::before { animation: blink 1s step-end infinite; }
+
+  /* em cima de link/botão vira um "_" piscando rápido, como se fosse digitar */
+  .caret.hover::before { width: 14px; height: 3px; top: 8px; animation: blink .5s step-end infinite; }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* rastro e explosão (criados via JS no body, por isso :global) */
+  :global(.glyph) {
+    position: fixed; z-index: 999;
+    pointer-events: none;
+    font-size: 12px; line-height: 1;
+    color: var(--fg-hi);
+    text-shadow: 0 0 8px rgb(255 182 39 / .8);
     transform: translate(-50%, -50%);
-    transition: width .25s, height .25s, background .25s, border-color .25s, box-shadow .25s;
   }
+  :global(.glyph.trail) { animation: fall .9s ease-in forwards; }
+  :global(.glyph.burst) { animation: burst .6s ease-out forwards; }
 
-  .cursor-dot::before { width: 6px; height: 6px; background: var(--fg); }
-
-  .cursor-ring::before {
-    width: 34px; height: 34px;
-    border: 1px solid var(--fg-dim);
+  @keyframes fall {
+    to { transform: translate(-50%, calc(-50% + 36px)); opacity: 0; }
   }
-  .cursor-ring.hover::before {
-    width: 56px; height: 56px;
-    border-color: var(--fg);
-    background: rgb(255 182 39 / .08);
-    box-shadow: 0 0 24px rgb(255 182 39 / .35);
+  @keyframes burst {
+    to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))); opacity: 0; }
   }
-  .cursor-ring.down::before { width: 22px; height: 22px; }
 </style>
