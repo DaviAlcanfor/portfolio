@@ -82,7 +82,7 @@
   .caret::before {
     content: ""; position: absolute;
     width: 10px; height: 18px; left: -1px; top: -9px;
-    background: #fff;
+    background: var(--fg); /* com difference: âmbar no preto, preto no rosto amarelo */
     transition: width .15s, height .15s, top .15s;
   }
   .caret.idle::before { animation: blink 1s step-end infinite; }

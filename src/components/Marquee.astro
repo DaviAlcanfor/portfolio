@@ -11,11 +11,9 @@ const items = [...MARQUEE, ...MARQUEE]
       items.map((item, i) => (
         <>
           {item.href ? (
-            <a href={item.href} target="_blank" rel="noopener" aria-hidden={i >= MARQUEE.length ? 'true' : undefined} tabindex={i >= MARQUEE.length ? -1 : undefined}>
-              {item.text}
-            </a>
+            <a href={item.href} target="_blank" rel="noopener" data-glitch aria-hidden={i >= MARQUEE.length ? 'true' : undefined} tabindex={i >= MARQUEE.length ? -1 : undefined}>{item.text}</a>
           ) : (
-            <span aria-hidden={i >= MARQUEE.length ? 'true' : undefined}>{item.text}</span>
+            <span data-glitch aria-hidden={i >= MARQUEE.length ? 'true' : undefined}>{item.text}</span>
           )}
           <i aria-hidden="true">◆</i>
         </>
@@ -23,16 +21,6 @@ const items = [...MARQUEE, ...MARQUEE]
     }
   </div>
 </header>
-
-<script>
-  import { scramble } from '../lib/scramble'
-
-  // glitch no hover dos links
-  for (const a of document.querySelectorAll<HTMLAnchorElement>('.marquee a')) {
-    const text = a.textContent ?? ''
-    a.addEventListener('mouseenter', () => scramble(a, text, 500))
-  }
-</script>
 
 <style>
   .marquee { position: fixed; inset: 24px 0 auto; overflow: hidden; font-size: 14px; }

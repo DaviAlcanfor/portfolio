@@ -1,10 +1,12 @@
 // Efeito glitch: cada letra embaralha e "trava" no caractere certo, da esquerda pra direita.
 
-export const GLYPHS ='!#$%*+=?/\\|_-01ABCDEFGHIJKLMNOPQRSTUVWXYZ@'
+export const GLYPHS = '!#$%*+=?/\\|_-01ABCDEFGHIJKLMNOPQRSTUVWXYZ@'
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
 const running = new WeakMap<HTMLElement, number>() // cancela animação anterior no mesmo elemento
+const finalText = new WeakMap<HTMLElement, string>() // texto "de verdade", mesmo no meio de uma animação
 
 export function scramble(el: HTMLElement, text: string, duration = 900): void {
+  finalText.set(el, text)
   if (reduced) {
     el.textContent = text
     return
@@ -29,4 +31,16 @@ export function scramble(el: HTMLElement, text: string, duration = 900): void {
     else el.textContent = text
   }
   requestAnimationFrame(frame)
+}
+
+/** Glitch ao passar o mouse em qualquer elemento com o atributo `data-glitch`. */
+export function glitchOnHover(): void {
+  for (const el of document.querySelectorAll<HTMLElement>('[data-glitch]')) {
+    el.addEventListener('mouseenter', (e) => {
+      // não atrapalha quem está selecionando texto (o glitch reescreve o conteúdo)
+      if (e.buttons || !getSelection()?.isCollapsed) return
+      const text = finalText.get(el) ?? el.textContent ?? ''
+      if (text) scramble(el, text, 500)
+    })
+  }
 }

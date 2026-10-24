@@ -4,7 +4,7 @@ import Icon from './Icon.astro'
 ---
 
 <div class="player">
-  <span class="now" aria-live="polite"></span>
+  <span class="now" aria-live="polite" data-glitch></span>
   <button class="listen" data-action="toggle">
     click to listen <span class="bars"><span></span><span></span><span></span><span></span></span>
   </button>
@@ -12,7 +12,7 @@ import Icon from './Icon.astro'
   <button data-action="toggle" aria-label="Play music"><Icon name="volume" /></button>
   <button data-action="next" aria-label="Next track"><Icon name="next" size={18} /></button>
   <button data-action="shuffle" aria-label="Random track"><Icon name="shuffle" size={18} /></button>
-  <small class="note">a very eclectic playlist :)</small>
+  <small class="note" data-glitch>a very eclectic playlist :)</small>
   <div class="yt"><div id="yt"></div></div>
 </div>
 

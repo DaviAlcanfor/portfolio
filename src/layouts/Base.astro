@@ -16,5 +16,9 @@ import { SITE } from '../data/site'
   </head>
   <body>
     <slot />
+    <script>
+      import { glitchOnHover } from '../lib/scramble'
+      glitchOnHover()
+    </script>
   </body>
 </html>
