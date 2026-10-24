@@ -75,8 +75,9 @@ public/                bg.webm, bg.mp4, poster.jpg, og.jpg, favicon.svg, apple-t
 - The global `* { margin: 0 }` reset kills `<dialog>` centering — the terminal sets `margin: auto`.
 - Don't spread a boolean in Astro attributes (`{...(cond && {...})}`) — it crashes the
   build. Use `attr={cond ? x : undefined}`.
-- OG/Twitter meta tags need an absolute URL, so they only render when `site` is set
-  in `astro.config`. Set it to the production domain after deploy.
+- OG/Twitter meta tags need an absolute URL. `astro.config.mjs` builds `site` from
+  Vercel's `VERCEL_PROJECT_PRODUCTION_URL`, which picks the custom domain if there is one.
+  Local builds have no `site`, so the tags are skipped there; that is expected.
 
 ## Background video pipeline
 
@@ -104,7 +105,6 @@ this pipeline. `trim=end_frame` and the delogo boxes must be re-checked for a ne
 
 ## Ideas not done yet
 
-- Set `site` in `astro.config` once the domain is known (enables link previews).
 - Résumé (PDF) link next to the social icons.
 - Live São Paulo clock in a corner.
 - RGB-split glitch on the video when the track changes.
