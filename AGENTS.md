@@ -12,7 +12,7 @@ info overlaid on top, glitch text and a music player.
   projects. Components only render it — edit data, not markup.
 - **Site copy is in English.** The owner speaks Portuguese; comments in code are in Portuguese.
 - **Terminal / Matrix aesthetic.** Amber on black (`--fg: #ffb627`), Martian Mono, glitch
-  text, terminal metaphors (`ls projects`, `>_` favicon, block cursor). New UI should fit it.
+  text, terminal metaphors (`ls projects`, `>_` favicon). New UI should fit it.
 - **Not glowy inside content.** Glow only on hover of overlay text/icons. The projects
   terminal is flat and spaced out — it should look like a real shell, not a neon sign.
 
@@ -42,7 +42,7 @@ src/
     Player.astro       YouTube IFrame player, loaded on first click
     Intro.astro        rotating role + bio + "ls projects" button
     Terminal.astro     <dialog> with projects, opens with button or "/" key
-    Cursor.astro       terminal block cursor + falling glyph trail
+    Cursor.astro       falling glyph trail + click burst (arrow lives in global.css)
     Icon.astro, icons.ts   inline Lucide-style SVGs
 public/                bg.webm, bg.mp4, poster.jpg, og.jpg, favicon.svg, apple-touch-icon.png
 ```
@@ -58,10 +58,11 @@ public/                bg.webm, bg.mp4, poster.jpg, og.jpg, favicon.svg, apple-t
   drives the icons; it ignores BUFFERING so "click to listen" doesn't flicker.
   Track titles/artists are hand-written in `TRACKS` (channel names are often wrong,
   e.g. a label's channel).
-- **Cursor:** only on `(hover: hover) and (pointer: fine)`. It's an amber block with
-  `mix-blend-mode: difference`: amber over black, black over the yellow face. Hidden until
-  the first mouse move. A custom cursor can't render above a modal `<dialog>` (top layer),
-  so the terminal uses a native SVG cursor drawn as the same amber block.
+- **Cursor:** a native custom cursor (SVG arrow in `global.css`): amber with a black
+  outline, inverted over links and buttons. It's deliberately native rather than a JS-drawn
+  element: a JS cursor disappears under the modal `<dialog>` (top layer) and could get stuck
+  in a hover state. `Cursor.astro` only adds the falling glyph trail and the click burst.
+  Everything is limited to `(hover: hover) and (pointer: fine)`.
 - **Responsive:** breakpoint 768px. Background switches on `orientation: portrait`
   (wider video, top/bottom fade, dark gradient behind icons and text).
 - **Reduced motion** is respected everywhere: no marquee, trail, blink or parallax,

@@ -1,10 +1,8 @@
 ---
-// Cursor de terminal: bloco que inverte as cores do que está embaixo (como num terminal),
-// deixa um rastro de caracteres caindo (igual à chuva do vídeo) e solta uma explosão no clique.
+// Efeitos do mouse: rastro de caracteres caindo (igual à chuva do vídeo) e explosão no clique.
+// A seta em si é um cursor nativo customizado (global.css), então nunca some — nem dentro do terminal.
 // Só ativa com mouse (pointer: fine); em touch nada muda.
 ---
-
-<div class="caret" aria-hidden="true"></div>
 
 <script>
   import { GLYPHS } from '../lib/scramble'
@@ -12,23 +10,16 @@
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  if (fine) {
-    const caret = document.querySelector<HTMLElement>('.caret')!
-    const root = document.documentElement
+  if (fine && !reduced) {
     const STEP = 26 // px de movimento entre um caractere do rastro e outro
     const MAX_GLYPHS = 40
     let last = { x: 0, y: 0 }
-    let idleTimer = 0
-
-    root.classList.add('has-cursor', 'cursor-out') // escondido até o primeiro movimento
-
-    const randomGlyph = () => GLYPHS[(Math.random() * GLYPHS.length) | 0]
 
     function spawn(x: number, y: number, cls: string, dx = 0, dy = 0) {
-      if (reduced || document.querySelectorAll('.glyph').length >= MAX_GLYPHS) return
+      if (document.querySelectorAll('.glyph').length >= MAX_GLYPHS) return
       const g = document.createElement('span')
       g.className = `glyph ${cls}`
-      g.textContent = randomGlyph()
+      g.textContent = GLYPHS[(Math.random() * GLYPHS.length) | 0]
       g.style.left = `${x}px`
       g.style.top = `${y}px`
       g.style.setProperty('--dx', `${dx}px`)
@@ -37,18 +28,7 @@
       document.body.append(g)
     }
 
-    addEventListener('mousemove', (e) => {
-      const { clientX: x, clientY: y } = e
-      caret.style.transform = `translate(${x}px, ${y}px)`
-      root.classList.remove('cursor-out')
-
-      // pisca só quando o mouse para
-      caret.classList.remove('idle')
-      clearTimeout(idleTimer)
-      idleTimer = window.setTimeout(() => caret.classList.add('idle'), 600)
-
-      caret.classList.toggle('hover', !!(e.target as Element).closest('a, button'))
-
+    addEventListener('mousemove', ({ clientX: x, clientY: y }) => {
       if (Math.hypot(x - last.x, y - last.y) > STEP) {
         spawn(x, y, 'trail')
         last = { x, y }
@@ -61,39 +41,10 @@
         spawn(e.clientX, e.clientY, 'burst', Math.cos(angle) * 40, Math.sin(angle) * 40)
       }
     })
-
-    document.addEventListener('mouseleave', () => root.classList.add('cursor-out'))
   }
 </script>
 
 <style>
-  .caret {
-    display: none;
-    position: fixed; left: 0; top: 0; z-index: 1000;
-    pointer-events: none;
-    mix-blend-mode: difference; /* inverte o que estiver embaixo, como cursor de terminal */
-  }
-
-  :global(.has-cursor), :global(.has-cursor) :global(a), :global(.has-cursor) :global(button) { cursor: none; }
-  :global(.has-cursor) .caret { display: block; }
-  :global(.cursor-out) .caret { opacity: 0; }
-  /* o terminal (modal) fica numa camada acima de tudo e usa cursor próprio */
-  :global(html:has(dialog[open])) .caret { display: none; }
-
-  /* ::before desenha o bloco; o transform do .caret fica livre pra posição */
-  .caret::before {
-    content: ""; position: absolute;
-    width: 10px; height: 18px; left: -1px; top: -9px;
-    background: var(--fg); /* com difference: âmbar no preto, preto no rosto amarelo */
-    transition: width .15s, height .15s, top .15s;
-  }
-  .caret.idle::before { animation: blink 1s step-end infinite; }
-
-  /* em cima de link/botão vira um "_" piscando rápido, como se fosse digitar */
-  .caret.hover::before { width: 14px; height: 3px; top: 8px; animation: blink .5s step-end infinite; }
-
-  @keyframes blink { 50% { opacity: 0; } }
-
   /* rastro e explosão (criados via JS no body, por isso :global) */
   :global(.glyph) {
     position: fixed; z-index: 999;

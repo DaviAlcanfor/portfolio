@@ -26,6 +26,16 @@ a, button {
   transition: color .3s, filter .3s, transform .3s;
 }
 
+/* seta customizada (só com mouse): âmbar normal, invertida em cima de link/botão */
+@media (hover: hover) and (pointer: fine) {
+  html {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M3 2v17l4.5-4.2 3.2 7 3-1.4-3.2-6.9H17z' fill='%23ffb627' stroke='%23000' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 3 2, auto;
+  }
+  a, button {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M3 2v17l4.5-4.2 3.2 7 3-1.4-3.2-6.9H17z' fill='%23000' stroke='%23ffb627' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 3 2, pointer;
+  }
+}
+
 /* brilho no hover — use em qualquer elemento interativo */
 a:hover, button:hover, .glow:hover { color: var(--fg-hi); filter: var(--glow); }
 
