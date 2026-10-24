@@ -39,6 +39,7 @@ src/
     Background.astro   video, edge mask, mouse parallax
     Marquee.astro      scrolling top line (rendered twice for a seamless loop)
     Social.astro       icon links
+    Clock.astro        live São Paulo time (Intl, America/Sao_Paulo)
     Player.astro       YouTube IFrame player, loaded on first click
     Intro.astro        rotating role + bio + "ls projects" button
     Terminal.astro     <dialog> with projects, opens with button or "/" key
@@ -107,6 +108,5 @@ this pipeline. `trim=end_frame` and the delogo boxes must be re-checked for a ne
 ## Ideas not done yet
 
 - Résumé (PDF) link next to the social icons.
-- Live São Paulo clock in a corner.
 - RGB-split glitch on the video when the track changes.
 - Easter-egg commands in the terminal (`whoami`, `contact`, `play <artist>`).

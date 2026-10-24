@@ -1,0 +1,36 @@
+---
+// Relógio ao vivo de São Paulo, no fuso certo pra qualquer visitante.
+---
+
+<time class="clock" aria-label="Local time in São Paulo">são paulo --:--:--</time>
+
+<script>
+  const el = document.querySelector<HTMLTimeElement>('.clock')!
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hourCycle: 'h23',
+    timeZoneName: 'shortOffset', // "GMT-3"
+  })
+
+  function tick() {
+    const parts = fmt.formatToParts(new Date())
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ''
+    el.textContent = `são paulo ${get('hour')}:${get('minute')}:${get('second')} ${get('timeZoneName').toLowerCase()}`
+  }
+
+  tick()
+  setInterval(tick, 1000)
+</script>
+
+<style>
+  .clock {
+    position: fixed; left: 32px; top: 132px;
+    font-size: 12px; color: var(--fg-dim);
+    font-variant-numeric: tabular-nums; /* números não "dançam" a cada segundo */
+  }
+
+  @media (max-width: 768px) {
+    .clock { left: 0; right: 0; top: 156px; /* folga pra linha da música no player */ text-align: center; font-size: 11px; }
+  }
+</style>
